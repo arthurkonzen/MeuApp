@@ -1,26 +1,64 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const AMARELO_ESCURO = '#FFC300';
+// Troque pelo IP da sua máquina na rede local!
+const BASE_URL = 'http://192.168.3.9:3333';
 
 export default function CapturaScreen() {
   const [nomeBebe, setNomeBebe] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
   const [rg, setRG] = useState('');
   const [cpf, setCPF] = useState('');
+  const [salvando, setSalvando] = useState(false);
 
-  function handlePerfilPress() {
-    // Aqui pode abrir tela de perfil futuramente
-    alert('Perfil do usuário');
+  async function handleSalvar() {
+    if (!nomeBebe || !dataNascimento) {
+      alert('Preencha ao menos o nome e a data de nascimento!');
+      return;
+    }
+    setSalvando(true);
+    try {
+      const userStr = await AsyncStorage.getItem('usuario');
+      if (!userStr) {
+        alert('Usuário não logado!');
+        setSalvando(false);
+        return;
+      }
+      const usuario = JSON.parse(userStr);
+      const response = await fetch(`${BASE_URL}/bebes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome: nomeBebe,
+          dataNascimento,
+          rg,
+          cpf,
+          usuarioId: usuario.id
+        }),
+      });
+      const data = await response.json();
+      if (data.sucesso) {
+        alert('Bebê cadastrado com sucesso!');
+        setNomeBebe('');
+        setDataNascimento('');
+        setRG('');
+        setCPF('');
+        router.replace('/home');
+      } else {
+        alert(data.erro || 'Erro ao cadastrar bebê');
+      }
+    } catch (error) {
+      alert('Erro de conexão');
+    }
+    setSalvando(false);
   }
 
-  function handleSalvar() {
-    // Aqui você pode implementar a lógica de salvar os dados
-    alert(
-      `Nome: ${nomeBebe}\nData de nascimento: ${dataNascimento}\nRG: ${rg}\nCPF: ${cpf}`
-    );
+  function handlePerfilPress() {
+    alert('Perfil do usuário');
   }
 
   return (
@@ -28,7 +66,6 @@ export default function CapturaScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      {/* Ícone de perfil centralizado no topo */}
       <TouchableOpacity style={styles.profileBtn} onPress={handlePerfilPress}>
         <Ionicons name="person-circle-outline" size={48} color={AMARELO_ESCURO} />
       </TouchableOpacity>
@@ -60,8 +97,8 @@ export default function CapturaScreen() {
           onChangeText={setCPF}
         />
 
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSalvar}>
-          <Text style={styles.saveBtnText}>Salvar</Text>
+        <TouchableOpacity style={styles.saveBtn} onPress={handleSalvar} disabled={salvando}>
+          <Text style={styles.saveBtnText}>{salvando ? 'Salvando...' : 'Salvar'}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>

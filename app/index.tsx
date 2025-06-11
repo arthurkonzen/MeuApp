@@ -1,9 +1,10 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const AMARELO_ESCURO = '#FFC300';
-// Troque pelo IP da sua máquina na rede local
+// Troque pelo IP da sua máquina na rede local!
 const BASE_URL = 'http://192.168.3.9:3333';
 
 export default function LoginScreen() {
@@ -20,7 +21,11 @@ export default function LoginScreen() {
         });
         const data = await response.json();
         if (data.token) {
-          // Se quiser, salve o token no AsyncStorage
+          await AsyncStorage.setItem('usuario', JSON.stringify({
+            nome: data.nome,
+            email: data.email,
+            id: data.id,
+          }));
           router.push('/home');
         } else {
           alert(data.erro || 'E-mail ou senha incorretos');

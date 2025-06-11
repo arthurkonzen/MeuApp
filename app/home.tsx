@@ -1,47 +1,58 @@
-import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-const AMARELO_ESCURO = '#FFC300'; // Amarelo escuro
+const AMARELO_ESCURO = '#FFC300';
 
 export default function HomeScreen() {
-  const usuario = { nome: 'Arthur' };
+  const [usuario, setUsuario] = useState<{ nome: string } | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem('usuario').then((userStr) => {
+      if (userStr) setUsuario(JSON.parse(userStr));
+    });
+  }, []);
 
   function handlePerfilPress() {
-    alert(`Perfil do usuário: ${usuario.nome}`);
+    if (usuario) alert(`Perfil do usuário: ${usuario.nome}`);
   }
 
   function handleCaptura() {
     router.push('/captura');
   }
 
+  function handleMeusCadastros() {
+    router.push('/meusCadastros');
+  }
+
   function handleSair() {
+    AsyncStorage.removeItem('usuario');
     router.replace('/');
   }
 
   return (
     <View style={styles.container}>
-      {/* Logo centralizada e bem maior */}
       <Image
         source={require('../assets/images/logo1.png')}
         style={styles.logo}
         resizeMode="contain"
       />
 
-      {/* Ícone de perfil no topo direito, bem para cima */}
       <TouchableOpacity style={styles.profileBtn} onPress={handlePerfilPress}>
-        <Ionicons name="person-circle-outline" size={60} color={AMARELO_ESCURO} />
+        <Text style={styles.profileText}>{usuario?.nome || 'Usuário'}</Text>
       </TouchableOpacity>
 
-      {/* Título centralizado e botão */}
       <View style={styles.centerContainer}>
         <Text style={styles.titulo}>Bem-vindo à Home!</Text>
         <TouchableOpacity style={styles.actionBtn} onPress={handleCaptura}>
           <Text style={styles.actionBtnText}>Iniciar Captura</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.actionBtn} onPress={handleMeusCadastros}>
+          <Text style={styles.actionBtnText}>Meus Cadastros</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Botão Sair fixo no rodapé */}
       <TouchableOpacity style={styles.exitBtn} onPress={handleSair}>
         <Text style={styles.exitBtnText}>Sair</Text>
       </TouchableOpacity>
@@ -54,8 +65,8 @@ const { width } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 20 },
   logo: {
-    width: width * 0.5,     // 50% da largura da tela
-    height: width * 0.5,    // proporcional, bem maior
+    width: width * 0.5,
+    height: width * 0.5,
     alignSelf: 'center',
     marginTop: 55,
     marginBottom: 10,
@@ -63,9 +74,19 @@ const styles = StyleSheet.create({
   },
   profileBtn: {
     position: 'absolute',
-    top: 0, // Máximo para cima!
+    top: 10,
     right: 20,
     zIndex: 2,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 30,
+    paddingHorizontal: 18,
+    paddingVertical: 6,
+    elevation: 2,
+  },
+  profileText: {
+    fontWeight: 'bold',
+    fontSize: 18,
+    color: AMARELO_ESCURO,
   },
   centerContainer: {
     flex: 1,

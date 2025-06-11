@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const AMARELO_ESCURO = '#FFC300';
-// Troque pelo IP da sua máquina na rede local
+// Troque pelo IP da sua máquina na rede local!
 const BASE_URL = 'http://192.168.3.9:3333';
 
 export default function CadastroScreen() {
