@@ -1,16 +1,34 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
+const AMARELO_ESCURO = '#FFC300';
+// Troque pelo IP da sua máquina na rede local
+const BASE_URL = 'http://192.168.3.9:3333';
 
 export default function CadastroScreen() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
-  function cadastrar() {
+  async function cadastrar() {
     if (nome && email && senha) {
-      alert('Cadastro realizado com sucesso!');
-      router.replace('/'); // Volta para o login
+      try {
+        const response = await fetch(`${BASE_URL}/cadastro`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, email, senha }),
+        });
+        const data = await response.json();
+        if (data.sucesso) {
+          alert('Cadastro realizado com sucesso!');
+          router.replace('/'); // Volta para o login
+        } else {
+          alert(data.erro || 'Erro ao cadastrar');
+        }
+      } catch (error) {
+        alert('Erro de conexão');
+      }
     } else {
       alert('Preencha todos os campos!');
     }
@@ -22,7 +40,9 @@ export default function CadastroScreen() {
       <TextInput placeholder="Nome" value={nome} onChangeText={setNome} style={styles.input} />
       <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />
       <TextInput placeholder="Senha" secureTextEntry value={senha} onChangeText={setSenha} style={styles.input} />
-      <Button title="Cadastrar" onPress={cadastrar} />
+      <TouchableOpacity style={styles.amareloBtn} onPress={cadastrar}>
+        <Text style={styles.amareloBtnText}>Cadastrar</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -30,5 +50,18 @@ export default function CadastroScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', padding: 20 },
   titulo: { fontSize: 24, marginBottom: 20, textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: '#ccc', padding: 10, marginBottom: 10, borderRadius: 5 },
+  input: { borderWidth: 1, borderColor: '#ccc', padding: 12, marginBottom: 14, borderRadius: 6, fontSize: 16 },
+  amareloBtn: {
+    backgroundColor: AMARELO_ESCURO,
+    borderRadius: 8,
+    paddingVertical: 18,
+    alignItems: 'center',
+    marginTop: 12,
+    elevation: 2,
+  },
+  amareloBtnText: {
+    color: '#333',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
 });
